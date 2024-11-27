@@ -11,7 +11,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
 */
 class LocalAuth extends BaseAuthStrategy {
-    constructor({ clientId, dataPath }={}) {
+    constructor({ clientId, dataPath, rmMaxTries }={}) {
         super();
 
         const idRegex = /^[-_\w]+$/i;
@@ -21,6 +21,7 @@ class LocalAuth extends BaseAuthStrategy {
 
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.clientId = clientId;
+        this.rmMaxTries = rmMaxTries ?? 4;
     }
 
     async beforeBrowserInitialized() {
@@ -44,7 +45,7 @@ class LocalAuth extends BaseAuthStrategy {
 
     async logout() {
         if (this.userDataDir) {
-            await fs.promises.rm(this.userDataDir, { recursive: true, force: true })
+            await fs.promises.rm(this.userDataDir, { recursive: true, force: true, maxRetries: this.rmMaxTries })
                 .catch((e) => {
                     throw new Error(e);
                 });
